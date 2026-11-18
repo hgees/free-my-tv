@@ -992,8 +992,8 @@ public class SettingsActivity extends Activity {
                 PHOTOS_ROW = -1, TOP_ROW = -1, PICKS_ROW = -1, WATCH_ROW = -1,
                 SAVER_ROW = -1, ANDROID_APPS_ROW = 5, STATUS_ICONS_ROW = 6, RECENTS_ROW = -1,
                 POWER_ON_ROW = 7, LIVE_BUTTON_ROW = 8, WEATHER_ROW = 9, CITY_ROW = 10,
-                FORECAST_ROW = 11, PLAYING_ROW = 12,
-                HOME_ROW = Config.HOME_ASSISTANT ? 13 : -1,
+                FORECAST_ROW = 11, PLAYING_ROW = 12, DELAY_ROW = 13,
+                HOME_ROW = Config.HOME_ASSISTANT ? 14 : -1,
                 QUOTES_ROW = -1, COIN_ROWS = 1000;
         /** No "home" on Xiaomi TVs: their remote sends one Home press as a burst of presses (HomeView.BURST_MS). */
         private static final String[] RECENTS = RemoteKeys.XIAOMI ? new String[] {"off", "drawer"}
@@ -1020,6 +1020,7 @@ public class SettingsActivity extends Activity {
             l.add(Ui.tr("City"));
             l.add(Ui.tr("Forecast"));
             l.add(Ui.tr("Now Playing widget"));
+            l.add(Ui.tr("Screen saver starts after"));
             if (HOME_ROW >= 0) l.add("Home Assistant");
             l.add(Ui.tr("Updates"));
             return l.toArray(new String[0]);
@@ -1110,6 +1111,7 @@ public class SettingsActivity extends Activity {
             v[CITY_ROW] = !cityStatus.isEmpty() ? cityStatus : Prefs.city().isEmpty() ? "—" : Prefs.city();
             v[FORECAST_ROW] = Prefs.forecast().equals("days") ? Ui.tr("Next days") : Ui.tr("Next hours");
             v[PLAYING_ROW] = onOff(Prefs.nowPlaying());
+            v[DELAY_ROW] = screenSaverDelayValue();
             if (HOME_ROW >= 0) v[HOME_ROW] = onOff(HomeAssistant.on(getContext()));
             v[v.length - 1] = updatesValue();
             return v;
@@ -1488,6 +1490,19 @@ public class SettingsActivity extends Activity {
                     Prefs.setNowPlaying(!Prefs.nowPlaying());
                     HomeMode.nowPlayingAccess(getContext());
                     break;
+                case DELAY_ROW: {
+                    int cur = android.provider.Settings.System.getInt(getContext().getContentResolver(),
+                            android.provider.Settings.System.SCREEN_OFF_TIMEOUT, 600_000);
+                    int idx = 0;
+                    for (int i = 0; i < SCREEN_OFF_VALUES.length; i++) if (SCREEN_OFF_VALUES[i] == cur) idx = i;
+                    int next = (idx + (dir > 0 ? 1 : -1) + SCREEN_OFF_VALUES.length) % SCREEN_OFF_VALUES.length;
+                    final int ms = SCREEN_OFF_VALUES[next];
+                    new Thread(() -> {
+                        HomeMode.setScreenOffTimeout(getContext(), ms);
+                        handler.post(() -> invalidate());
+                    }).start();
+                    break;
+                }
                 case HOME_ROW:   // off: what it read is forgotten, and nothing is asked of the server until it's on again
                     Prefs.setHomeAssistant(!Prefs.homeAssistant());
                     if (!Prefs.homeAssistant()) HomeAssistant.forget(getContext());
@@ -1553,6 +1568,16 @@ public class SettingsActivity extends Activity {
         }
 
         /** The Updates row: what the last check found, or "Checking…" from OK until the check starts. */
+        private static final int[] SCREEN_OFF_VALUES = {60_000, 150_000, 300_000, 600_000};
+
+        private String screenSaverDelayValue() {
+            int cur = android.provider.Settings.System.getInt(getContext().getContentResolver(),
+                    android.provider.Settings.System.SCREEN_OFF_TIMEOUT, 600_000);
+            String[] labels = {"1 min", "2.5 min", "5 min", "10 min"};
+            for (int i = 0; i < SCREEN_OFF_VALUES.length; i++) if (SCREEN_OFF_VALUES[i] == cur) return labels[i];
+            return (cur / 60_000) + " min";
+        }
+
         private String updatesValue() {
             return checkAsked() ? Ui.tr("Checking…") : Updates.summary(updates, installed);
         }
