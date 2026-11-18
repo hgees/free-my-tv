@@ -320,8 +320,8 @@ final class Prefs {
 
     /** What the cards under the title show: the recommendations (TMDB), what you were watching in your apps, or nothing. */
     static String topContent() {
-        String v = sp().getString("topContent", TOP_PICKS);
-        return v.equals(TOP_CONTINUE) || v.equals(TOP_NONE) ? v : TOP_PICKS;
+        String v = sp().getString("topContent", TOP_NONE);
+        return v.equals(TOP_CONTINUE) || v.equals(TOP_NONE) ? v : TOP_NONE;
     }
 
     static void setTopContent(String v) { put("topContent", v); }
@@ -379,7 +379,7 @@ final class Prefs {
     static boolean homeAssistant() { return sp().getBoolean("homeAssistant", false); }
     static void setHomeAssistant(boolean on) { put("homeAssistant", on); }
 
-    static boolean quotes() { return sp().getBoolean("quotes", Config.SHOW_CRYPTO); }
+    static boolean quotes() { return sp().getBoolean("quotes", false); }
     static void setQuotes(boolean on) { put("quotes", on); }
 
     /** Your photos (Photos, sent from a computer) on the screensaver and behind the home screen, once imported. */

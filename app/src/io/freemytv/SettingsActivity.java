@@ -304,7 +304,7 @@ public class SettingsActivity extends Activity {
                 }
                 @Override public int focused() { return focus + 1; }
                 @Override public void focus(int id) {
-                    if (screen == HOME_SETTINGS && pickScroll + focus == TOP_ROW && id - 1 != focus) commitWatch();
+                    /* top row removed */
                     focus = id - 1;
                     invalidate();
                 }
@@ -938,7 +938,7 @@ public class SettingsActivity extends Activity {
                             if (screen == PICKER && pickFor == PICK_ALBUM) {
                                 openPhotoSources();
                             } else if (screen == PICKER && pickFor == PICK_PHOTOS) {
-                                showSettingsRow(PHOTOS_ROW);
+                                showSettingsRow(0);
                             } else if (screen == PICKER && pickFor <= PICK_SLEEP) {
                                 focus = powerFocus(pickFor == PICK_SLEEP ? P_SLEEP : P_WHERE);
                                 pickScroll = 0;   // the picker's scroll isn't this short list's
@@ -951,7 +951,7 @@ public class SettingsActivity extends Activity {
                             } else if (screen == TMDB_KEY) {
                                 closeKeyScreen();
                             } else if (screen == PICKS) {
-                                focus = PICKS_ROW;
+                                focus = 0;
                                 pickScroll = 0;
                                 screen = HOME_SETTINGS;
                             } else if (screen == PICK_FROM) {
@@ -960,7 +960,7 @@ public class SettingsActivity extends Activity {
                                 focus = 1;
                                 screen = PICKS;
                             } else if (screen == WATCH_APPS) {
-                                focus = WATCH_ROW;   // on the list's first screen
+                                focus = 0;   // on the list's first screen
                                 pickScroll = 0;
                                 screen = HOME_SETTINGS;
                             } else {
@@ -988,10 +988,13 @@ public class SettingsActivity extends Activity {
          *  Watching's apps, watch from the screensaver, Android apps, status icons, Recent Apps, at power-on, Live TV button, weather, city, forecast,
          *  now playing, Home Assistant (only on builds with its address), quotes, one row per coin, then the TMDB and Watchmode keys and
          *  updates (the last row). */
-        private static final int CLOCK_ROW = 3, PHOTOS_ROW = 4, TOP_ROW = 6, PICKS_ROW = 7, WATCH_ROW = 8,
-                SAVER_ROW = 9, ANDROID_APPS_ROW = 10, STATUS_ICONS_ROW = 11, RECENTS_ROW = 12, POWER_ON_ROW = 13,
-                LIVE_BUTTON_ROW = 14, WEATHER_ROW = 15, CITY_ROW = 16, FORECAST_ROW = 17, PLAYING_ROW = 18,
-                HOME_ROW = Config.HOME_ASSISTANT ? 19 : -1, QUOTES_ROW = Config.HOME_ASSISTANT ? 20 : 19, COIN_ROWS = QUOTES_ROW + 1;
+        private static final int CLOCK_ROW = 3,
+                PHOTOS_ROW = -1, TOP_ROW = -1, PICKS_ROW = -1, WATCH_ROW = -1,
+                SAVER_ROW = -1, ANDROID_APPS_ROW = 5, STATUS_ICONS_ROW = 6, RECENTS_ROW = -1,
+                POWER_ON_ROW = 7, LIVE_BUTTON_ROW = 8, WEATHER_ROW = 9, CITY_ROW = 10,
+                FORECAST_ROW = 11, PLAYING_ROW = 12,
+                HOME_ROW = Config.HOME_ASSISTANT ? 13 : -1,
+                QUOTES_ROW = -1, COIN_ROWS = 1000;
         /** No "home" on Xiaomi TVs: their remote sends one Home press as a burst of presses (HomeView.BURST_MS). */
         private static final String[] RECENTS = RemoteKeys.XIAOMI ? new String[] {"off", "drawer"}
                 : new String[] {"off", "drawer", "home"};
@@ -1008,15 +1011,9 @@ public class SettingsActivity extends Activity {
             l.add(Ui.tr("Temperature"));
             l.add(Ui.tr("Theme"));
             l.add(Ui.tr("Clock"));
-            l.add(Ui.tr("My Photos"));
             l.add(Ui.tr("Navigation sounds"));
-            l.add(Ui.tr("Top of the screen"));
-            l.add(Ui.tr("Picks"));
-            l.add(Ui.tr("Continue Watching apps"));
-            l.add(Ui.tr("Watch from the screensaver"));
             l.add(Ui.tr("Android apps"));
             l.add(Ui.tr("Status icons"));   // before the weather widget: City and Forecast are the widget's
-            l.add(Ui.tr("Recent Apps"));
             l.add(Ui.tr("At power-on"));
             l.add(Ui.tr("Live TV button"));
             l.add(Ui.tr("Weather widget"));
@@ -1024,13 +1021,6 @@ public class SettingsActivity extends Activity {
             l.add(Ui.tr("Forecast"));
             l.add(Ui.tr("Now Playing widget"));
             if (HOME_ROW >= 0) l.add("Home Assistant");
-            l.add(Ui.tr("Quotes widget"));
-            l.add("Bitcoin");
-            l.add("Ethereum");
-            l.add("Solana");
-            if (dollar()) l.add(Ui.tr("Dollar"));
-            l.add(Ui.tr("TMDB key"));
-            l.add(Ui.tr("Watchmode key"));
             l.add(Ui.tr("Updates"));
             return l.toArray(new String[0]);
         }
@@ -1041,11 +1031,11 @@ public class SettingsActivity extends Activity {
         }
 
         private int keyRow() {
-            return updatesRow() - 2;
+            return updatesRow();   // keys removed from this build
         }
 
         private int watchmodeRow() {
-            return updatesRow() - 1;
+            return -1;   // removed
         }
 
         /** A key's row: "Not set", or the key's last 4 characters (all that's ever shown of it). */
@@ -1108,22 +1098,9 @@ public class SettingsActivity extends Activity {
             v[1] = unit.equals("C") ? "°C" : unit.equals("F") ? "°F" : Ui.tr("unit|Automatic");
             String theme = Prefs.theme();
             v[2] = theme.equals("light") ? Ui.tr("Light") : theme.equals("dark") ? Ui.tr("Dark") : Ui.tr("Automatic");
-            int photos = Photos.files(getContext()).size();
-            v[PHOTOS_ROW] = photos == 0 ? Ui.tr("photos|None")
-                    : Prefs.photos() ? Ui.plural("plural|one:{n} photo|other:{n} photos", photos) : Ui.tr("Off");
-            if (ImmichPhotos.configured(getContext())) v[PHOTOS_ROW] = immichPhotosValue(photos);
             String clock = Prefs.clockFormat();
             v[CLOCK_ROW] = clock.equals("24") ? Ui.tr("24 hours") : clock.equals("12") ? Ui.tr("12 hours") : Ui.tr("Automatic");
-            v[5] = onOff(Prefs.sounds());
-            v[PICKS_ROW] = "›";   // opens its own screen: Picks per tab and Picks from
-            v[SAVER_ROW] = onOff(Prefs.saverWatch());
-            String top = Prefs.topContent();
-            v[TOP_ROW] = top.equals(Prefs.TOP_CONTINUE) ? Ui.tr("Continue Watching")
-                    : top.equals(Prefs.TOP_NONE) ? Ui.tr("Clock")
-                    : Ui.tr("Picks");
-            v[WATCH_ROW] = watchCount();
-            String rec = Prefs.recents();
-            v[RECENTS_ROW] = rec.equals("home") ? Ui.tr("recents|Drawer and Home twice") : rec.equals("drawer") ? Ui.tr("recents|In the drawer") : Ui.tr("Off");
+            v[4] = onOff(Prefs.sounds());
             String power = Prefs.powerOn();
             v[POWER_ON_ROW] = power.equals("home") ? Ui.tr("power|Home screen") : power.equals("live") ? Ui.tr("Live TV") : Ui.tr("TV's choice");
             v[LIVE_BUTTON_ROW] = liveButtonValue();
@@ -1134,11 +1111,6 @@ public class SettingsActivity extends Activity {
             v[FORECAST_ROW] = Prefs.forecast().equals("days") ? Ui.tr("Next days") : Ui.tr("Next hours");
             v[PLAYING_ROW] = onOff(Prefs.nowPlaying());
             if (HOME_ROW >= 0) v[HOME_ROW] = onOff(HomeAssistant.on(getContext()));
-            v[QUOTES_ROW] = onOff(Prefs.quotes());
-            // No quotes widget, nowhere to show prices: the coins read as off (and stay locked) until it is back on.
-            for (int i = COIN_ROWS; i < v.length - 3; i++) v[i] = onOff(Prefs.quotes() && Prefs.coin(i - COIN_ROWS));
-            v[v.length - 3] = keyValue(Recs.key());
-            v[v.length - 2] = keyValue(Recs.watchmodeKey());
             v[v.length - 1] = updatesValue();
             return v;
         }
@@ -1479,34 +1451,14 @@ public class SettingsActivity extends Activity {
                     SleepOverlay.update(getContext());   // the pill's glass follows
                     break;
                 }
-                case PHOTOS_ROW:
-                    if (ImmichPhotos.configured(getContext())) return;   // OK opens the choice of source
-                    if (Photos.files(getContext()).isEmpty()) return;
-                    Prefs.setPhotos(!Prefs.photos());
-                    return;
+                /* photos row removed */
                 case CLOCK_ROW: {
                     int at = java.util.Arrays.asList(CLOCKS).indexOf(Prefs.clockFormat());
                     Prefs.setClockFormat(CLOCKS[(at + dir + CLOCKS.length) % CLOCKS.length]);
                     break;
                 }
-                case 5: Prefs.setSounds(!Prefs.sounds()); break;
-                case PICKS_ROW: return;
-                case SAVER_ROW: Prefs.setSaverWatch(!Prefs.saverWatch()); break;
-                case TOP_ROW: {
-                    int at = java.util.Arrays.asList(Prefs.TOP_CONTENT).indexOf(Prefs.topContent());
-                    String next = Prefs.TOP_CONTENT[(at + dir + Prefs.TOP_CONTENT.length) % Prefs.TOP_CONTENT.length];
-                    Prefs.setTopContent(next);
-                    handler.removeCallbacks(askWatch);
-                    watchGrantPending = false;
-                    watchPickPending = true;
-                    break;
-                }
-                case WATCH_ROW: return;   // a list of its own (OK)
-                case RECENTS_ROW: {
-                    int at = java.util.Arrays.asList(RECENTS).indexOf(Prefs.recents());
-                    Prefs.setRecents(RECENTS[(at + dir + RECENTS.length) % RECENTS.length]);
-                    break;
-                }
+                case 4: Prefs.setSounds(!Prefs.sounds()); break;
+                /* removed rows */
                 case POWER_ON_ROW: {   // read at the next full start (HomeMode.bootCheck, HomeActivity)
                     int at = java.util.Arrays.asList(Prefs.POWER_ON).indexOf(Prefs.powerOn());
                     Prefs.setPowerOn(Prefs.POWER_ON[(at + dir + Prefs.POWER_ON.length) % Prefs.POWER_ON.length]);
@@ -1540,7 +1492,7 @@ public class SettingsActivity extends Activity {
                     Prefs.setHomeAssistant(!Prefs.homeAssistant());
                     if (!Prefs.homeAssistant()) HomeAssistant.forget(getContext());
                     return;
-                case QUOTES_ROW: Prefs.setQuotes(!Prefs.quotes()); break;
+                /* quotes row removed */
                 default:
                     if (row >= keyRow() || !Prefs.quotes()) return;   // the keys and Updates act on OK only
                     Prefs.setCoin(row - COIN_ROWS, !Prefs.coin(row - COIN_ROWS));
@@ -1973,7 +1925,7 @@ public class SettingsActivity extends Activity {
             // Also when it's the same choice: My Photos turned off earlier (before the key came) is on again
             Prefs.setPhotos(!"default".equals(source));
             ImmichPhotos.syncIfDue(getContext(), null);   // the new source starts coming now, not at the next home screen
-            showSettingsRow(PHOTOS_ROW);
+            showSettingsRow(0);
         }
 
         private void searchCity(String name) {
