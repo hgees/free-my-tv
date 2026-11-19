@@ -2084,7 +2084,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
             x += tw + gap;
         }
         // Weather card now sits at the top, next to the clock, above the shelf.
-        weatherCard.set(460 * k, 40 * k, 1100 * k, 370 * k);
+        weatherCard.set(700 * k, 40 * k, 1340 * k, 370 * k);
         snap(weatherCard);
         // The symbols at their sizes at rest and focused: drawing them never scales one.
         for (HomeApps.Item it : drawerItems) {
