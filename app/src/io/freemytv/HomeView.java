@@ -123,7 +123,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private static final float L_STATUS = 25, L_STATUS_GAP = 22;
     private static final String[] STATUS_SYMBOLS = {"wifi", "ethernet", "bluetooth", "usb"};
     private static final float L_PLATTER_TOP = 430, L_TILE_H = 126;
-    private static final float L_DATE_BASE = 150, L_CLOCK_BASE = 320, L_WEATHER_BASE = 626, L_QUOTES_BASE = 694;
+    private static final float L_DATE_BASE = 485, L_CLOCK_BASE = 655, L_WEATHER_BASE = 626, L_QUOTES_BASE = 694;
     private static final int L_INK = 0xFF1D1D1F, L_DIM = 0xFF6E6E73, L_FAINT = 0xFF8E8E93;
     private static String[] tabs;
     private static int tabsGeneration = -1;
@@ -2084,7 +2084,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
             x += tw + gap;
         }
         // Weather card now sits at the top, next to the clock, above the shelf.
-        weatherCard.set(700 * k, 40 * k, 1340 * k, 370 * k);
+        weatherCard.set(700 * k, 375 * k, 1340 * k, 705 * k);
         snap(weatherCard);
         // The symbols at their sizes at rest and focused: drawing them never scales one.
         for (HomeApps.Item it : drawerItems) {
