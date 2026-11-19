@@ -102,6 +102,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private static final float CAPSULE_TOP = 46, CAPSULE_H = 68, BUTTON = 56;
     // Bottom drawer (measured with it open; everything moves up by SHIFT).
     private static final float SHIFT = 560, ROW_TITLE_1 = 730, ROW_TOP_1 = 746, ROW_TITLE_2 = 884, ROW_TOP_2 = 900, ROW_H = 104;
+    private static final float SHELF_DROP = 380;   // prateleira de ícones do Início deslocada para a base da tela
     private static final float CARDS_TOP = 690, CARDS_H = 330;   // the weather and quotes cards, bottom right
     // "All Apps" sheet.
     private static final int COLUMNS = 5, VISIBLE_ROWS = 3;
@@ -870,8 +871,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         sky.layout(0, 0, width, height);
         place(heroLayer, 0, 0);
         place(status, statusWide ? 0 : width - status.getMeasuredWidth(), 0);
-        place(platter, 0, Math.round(370 * kk));   // the shelf's glass, under the clock (L_PLATTER_TOP)
-        place(tiles, 0, Math.round(400 * kk));
+        place(platter, 0, Math.round(SHELF_DROP * kk));   // prateleira de ícones do Início na base da tela
+        place(tiles, 0, Math.round((SHELF_DROP + 30) * kk));
         place(drawerLayer, 0, Math.round(470 * kk));
         sheetLayer.layout(0, 0, width, height);
         menuLayer.layout(0, 0, width, height);
@@ -1109,8 +1110,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         float lift = 0;
         show(heroLayer, top, lift);
         show(status, top, lift);
-        show(platter, home, lift);
-        show(tiles, home, lift);
+        show(platter, home, lift + SHELF_DROP * k);
+        show(tiles, home, lift + SHELF_DROP * k);
         float da = home * smoothstep(0.1f, 0.6f, dc);
         drawerLayer.setTranslationY((1 - d) * shift);
         drawerLayer.setAlpha(da);
@@ -2033,8 +2034,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     // MARK: - Bottom drawer
 
     private static List<HomeApps.Item> drawerList(Context c) {
-        List<HomeApps.Item> list = HomeApps.orderedInputs(c);
-        list.addAll(HomeApps.drawerShortcuts(c));
+        List<HomeApps.Item> list = new ArrayList<>();
         list.addAll(HomeAssistant.items(c));   // empty unless configured and on in Home Settings
         return list;
     }
@@ -2083,9 +2083,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
             snap(drawerRects[i]);
             x += tw + gap;
         }
-        float cardsTop = CARDS_TOP * k;
-        // Weather takes the whole right column now (quotes removed).
-        weatherCard.set(720 * k, cardsTop, right, cardsTop + CARDS_H * k);
+        // Weather card now sits at the top, next to the clock, above the shelf.
+        weatherCard.set(460 * k, 40 * k, 1100 * k, 370 * k);
         snap(weatherCard);
         // The symbols at their sizes at rest and focused: drawing them never scales one.
         for (HomeApps.Item it : drawerItems) {
@@ -2179,7 +2178,6 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     }
 
     private void drawDrawer(Canvas c) {
-        if (drawerItems.isEmpty()) return;
         rowTitle.setColor(tone(L_DIM, 0xB3FFFFFF));
         cardTitle.setColor(tone(L_DIM, 0xB3FFFFFF));
         cardText.setColor(drawerInk(0.95f));
@@ -2190,8 +2188,6 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         hourTemp.setColor(drawerInk(0.95f));
         dayLow.setColor(tone(L_DIM, 0xADFFFFFF));
         pricePaint.setColor(drawerInk(0.95f));
-        if (drawerInputs > 0) c.drawText(Ui.tr("Inputs"), drawerRects[0].left + 4 * k, ROW_TITLE_1 * k, rowTitle);
-        if (drawerInputs < drawerHome) c.drawText(Ui.tr("Shortcuts"), drawerRects[drawerInputs].left + 4 * k, ROW_TITLE_2 * k, rowTitle);
         if (drawerHome < drawerItems.size()) c.drawText("Home Assistant", drawerRects[drawerHome].left + 4 * k, ROW_TITLE_2 * k, rowTitle);
         int top = -1;
         for (int i = 0; i < drawerItems.size(); i++) if (drawerFocus[i].value > 0.02f && (top < 0 || drawerFocus[i].value > drawerFocus[top].value)) top = i;
@@ -2511,14 +2507,13 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private boolean inputsOnResume;
 
     private void openInputs() {
-        openDrawer();
-        for (int i = 0; i < drawerItems.size(); i++) {
-            if (drawerItems.get(i).kind == HomeApps.INPUT) {
-                drawerIndex = i;
-                break;
-            }
+        // As entradas saíram da gaveta; abre o seletor de entradas da própria TV.
+        try {
+            Intent i = new Intent("com.android.tv.action.VIEW_INPUTS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            showToast(Ui.tr("No inputs."));
         }
-        retarget(false);
     }
 
     private void openSheet() {

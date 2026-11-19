@@ -332,7 +332,7 @@ public class SettingsActivity extends Activity {
                         return Ui.trf("Home Screen, {mode}", "mode", value);
                     }
                     String[] names = {Ui.tr("Screensaver, preview"), Ui.tr("Home Settings"),
-                            Ui.tr("Shelf"), Ui.tr("Top Buttons"), Ui.tr("Inputs"), Ui.tr("Remote Buttons"),
+                            Ui.tr("Shelf"), Ui.tr("Top Buttons"), Ui.tr("Remote Buttons"),
                             Ui.tr("Sleep Timer"), Ui.tr("TV Settings")};
                     return row - 1 < names.length ? names[row - 1] : "";
                 }
@@ -541,7 +541,7 @@ public class SettingsActivity extends Activity {
 
         private int rowCount() {
             switch (screen) {
-                case MAIN: return 9;
+                case MAIN: return 8;
                 case HOME_CHOICE: return 2;
                 case HOME_SETTINGS: return Math.min(SETTINGS_VISIBLE, settingLabels().length);
                 case PICKER: return Math.min(PICK_VISIBLE, pickLabels.size());
@@ -598,9 +598,9 @@ public class SettingsActivity extends Activity {
             String busyText = busyText();
             String mode = freeActive() ? "Free My TV" : Ui.tr("Original");
             String[] labels = {Ui.tr("Home Screen"), Ui.tr("Screensaver"),
-                    Ui.tr("Home Settings"), Ui.tr("Shelf"), Ui.tr("Top Buttons"), Ui.tr("Inputs"),
+                    Ui.tr("Home Settings"), Ui.tr("Shelf"), Ui.tr("Top Buttons"),
                     Ui.tr("Remote Buttons"), Ui.tr("Sleep Timer"), Ui.tr("TV Settings")};
-            String[] values = {working ? "" : mode, Ui.tr("Preview"), "", "", "", "", "", "", ""};
+            String[] values = {working ? "" : mode, Ui.tr("Preview"), "", "", "", "", "", ""};
             for (int i = 0; i < labels.length; i++) {
                 float y = (MAIN_TOP + i * (ROW_H + MAIN_GAP)) * k;
                 rowRect.set(LIST_X * k, y, LIST_R * k, y + ROW_H * k);
@@ -1148,9 +1148,8 @@ public class SettingsActivity extends Activity {
             switch (screen) {
                 case MAIN:
                     return i == 0 ? Capabilities.NEED_SWITCH : i == 1 ? Capabilities.NEED_SCREENSAVER
-                            : i == 5 ? Capabilities.NEED_INPUTS
-                            : i == 6 ? Capabilities.NEED_REMOTE_BUTTONS
-                            : i == 7 ? Capabilities.NEED_ADB : null;
+                            : i == 5 ? Capabilities.NEED_REMOTE_BUTTONS
+                            : i == 6 ? Capabilities.NEED_ADB : null;
                 case HOME_SETTINGS:
                     return pickScroll + i == PLAYING_ROW ? Capabilities.NEED_LISTENER
                             : pickScroll + i == HOME_ROW ? Capabilities.NEED_HOME_ASSISTANT
@@ -2570,13 +2569,11 @@ public class SettingsActivity extends Activity {
             } else if (focus == 4) {
                 openShelfEditor(true);
             } else if (focus == 5) {
-                openInputsEditor();
-            } else if (focus == 6) {
                 HomeMode.ensureRemoteService(c, 0);   // the buttons work from inside other apps through this service
                 loadApps();
                 screen = REMOTE_KEYS;
                 focus = 0;
-            } else if (focus == 7) {
+            } else if (focus == 6) {
                 pickScroll = 0;
                 screen = POWER;
                 focus = 0;
