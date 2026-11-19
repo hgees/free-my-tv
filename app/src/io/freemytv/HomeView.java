@@ -873,7 +873,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         place(status, statusWide ? 0 : width - status.getMeasuredWidth(), 0);
         place(platter, 0, Math.round(SHELF_DROP * kk));   // prateleira de ícones do Início na base da tela
         place(tiles, 0, Math.round((SHELF_DROP + 30) * kk));
-        place(drawerLayer, 0, Math.round(470 * kk));
+        place(drawerLayer, 0, 0);   // cobre a tela toda, para o clima no topo não ser recortado
         sheetLayer.layout(0, 0, width, height);
         menuLayer.layout(0, 0, width, height);
         sheetLayer.setPivotX(width / 2f);
@@ -932,8 +932,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         lQuote = Ui.numbers(Ui.regular, 21 * k, L_FAINT);
         lTip = Ui.text(Ui.semibold, 25 * k, L_INK);
         lTip.setTextAlign(Paint.Align.CENTER);
-        lDate = Ui.text(Ui.semibold, 34 * k, L_DIM);
-        lClock = Ui.numbers(Ui.light, 150 * k, L_INK);
+        lDate = Ui.text(Ui.semibold, 42 * k, L_DIM);
+        lClock = Ui.numbers(Ui.light, 190 * k, L_INK);
         lClock.setLetterSpacing(-0.01f);
         lWeather = Ui.text(Ui.medium, 34 * k, L_DIM);
         lClockQuote = Ui.numbers(Ui.medium, 28 * k, L_DIM);
